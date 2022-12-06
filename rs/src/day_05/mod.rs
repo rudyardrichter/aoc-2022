@@ -1,13 +1,10 @@
+use std::{cell::RefCell, rc::Rc};
+
 use sscanf::scanf;
 
 #[derive(Debug, Clone)]
-struct Stack {
-    crates: Vec<char>,
-}
-
-#[derive(Debug, Clone)]
 pub struct Cargo {
-    stacks: Vec<Box<Stack>>,
+    stacks: Vec<Rc<RefCell<Vec<char>>>>,
     moves: Vec<(usize, usize, usize)>,
 }
 
@@ -15,38 +12,28 @@ impl Cargo {
     fn tops(&self) -> String {
         self.stacks
             .iter()
-            .filter_map(|s| s.crates.last().copied())
+            .filter_map(|s| s.borrow().last().copied())
             .collect()
     }
 
-    fn execute_moves_1(&self) -> Result<Self, &'static str> {
-        let mut new = self.clone();
+    fn execute_moves_1(&mut self) -> &Self {
         for &(n, from, to) in &self.moves {
-            for _ in 0..n {
-                let crate_ = new.stacks[from - 1].crates.pop().ok_or("too many pops")?;
-                new.stacks[to - 1].crates.push(crate_);
-            }
+            let mut stack_from = self.stacks[from - 1].borrow_mut();
+            let mut stack_to = self.stacks[to - 1].borrow_mut();
+            let drain_range = stack_from.len().saturating_sub(n)..;
+            stack_to.extend(stack_from.drain(drain_range).rev())
         }
-        Ok(new)
+        self
     }
 
-    fn execute_moves_2(&self) -> Result<Self, &'static str> {
-        let mut new = self.clone();
+    fn execute_moves_2(&mut self) -> &Self {
         for &(n, from, to) in &self.moves {
-            let mut crates = Vec::new();
-            for _ in 0..n {
-                crates.push(
-                    new.stacks[from - 1]
-                        .crates
-                        .pop()
-                        .ok_or("too many pops")
-                        .unwrap(),
-                );
-            }
-            crates.reverse();
-            new.stacks[to - 1].crates.extend(crates);
+            let mut stack_from = self.stacks[from - 1].borrow_mut();
+            let mut stack_to = self.stacks[to - 1].borrow_mut();
+            let drain_range = stack_from.len().saturating_sub(n)..;
+            stack_to.extend(stack_from.drain(drain_range))
         }
-        Ok(new)
+        self
     }
 }
 
@@ -63,12 +50,12 @@ impl TryFrom<&str> for Cargo {
             .map(|x| x.parse::<usize>().ok())
             .flatten()
             .ok_or("parse error")?;
-        let mut stacks: Vec<Box<Stack>> = Vec::new();
-        (0..n).for_each(|_| stacks.push(Box::new(Stack { crates: Vec::new() })));
+        let mut stacks = Vec::new();
+        (0..n).for_each(|_| stacks.push(Rc::new(RefCell::new(Vec::new()))));
         for line in stacks_lines.iter().rev() {
             for (i, chunk) in line.as_bytes().chunks(4).enumerate() {
                 if chunk.get(0) == Some(&b'[') {
-                    (*stacks[i]).crates.push(chunk[1] as char);
+                    (*stacks[i]).borrow_mut().push(chunk[1] as char);
                 }
             }
         }
@@ -88,12 +75,12 @@ pub fn get_input(input: &str) -> Cargo {
 
 #[aoc(day5, part1)]
 pub fn part_1(cargo: &Cargo) -> String {
-    cargo.execute_moves_1().unwrap().tops()
+    cargo.clone().execute_moves_1().tops()
 }
 
 #[aoc(day5, part2)]
 pub fn part_2(cargo: &Cargo) -> String {
-    cargo.execute_moves_2().unwrap().tops()
+    cargo.clone().execute_moves_2().tops()
 }
 
 #[cfg(test)]
