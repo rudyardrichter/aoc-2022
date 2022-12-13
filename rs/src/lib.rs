@@ -3,6 +3,8 @@
 #[macro_use]
 extern crate aoc_runner_derive;
 
+mod grid;
+
 mod day_01;
 mod day_02;
 mod day_03;
@@ -14,5 +16,6 @@ mod day_08;
 mod day_09;
 mod day_10;
 mod day_11;
+mod day_12;
 
 aoc_lib! { year = 2022 }
