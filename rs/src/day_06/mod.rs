@@ -1,14 +1,17 @@
-use std::collections::HashSet;
-
-fn first_marker(s: &String, k: usize) -> usize {
-    s.as_bytes()
-        .windows(k)
-        .enumerate()
-        .filter(|(_, w)| HashSet::<_>::from_iter(w.iter()).len() == k)
-        .next()
-        .unwrap()
-        .0
-        + k
+fn first_marker(s: &String, k: usize) -> Option<usize> {
+    let bs = s.as_bytes();
+    let mut mask: u32 = bs
+        .iter()
+        .take(k)
+        .fold(0, |acc: u32, c| acc ^ 1 << (*c as u8 - 'a' as u8));
+    for (i, (add, remove)) in bs.iter().skip(k).zip(bs.iter()).enumerate() {
+        if mask.count_ones() as usize == k {
+            return Some(i + k);
+        }
+        mask ^= 1 << *add as u8 - 'a' as u8;
+        mask ^= 1 << *remove as u8 - 'a' as u8;
+    }
+    None
 }
 
 #[aoc_generator(day6)]
@@ -18,12 +21,12 @@ pub fn get_input(input: &str) -> String {
 
 #[aoc(day6, part1)]
 pub fn part_1(s: &String) -> usize {
-    first_marker(s, 4)
+    first_marker(s, 4).unwrap()
 }
 
 #[aoc(day6, part2)]
 pub fn part_2(s: &String) -> usize {
-    first_marker(s, 14)
+    first_marker(s, 14).unwrap()
 }
 
 #[cfg(test)]
