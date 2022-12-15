@@ -1,6 +1,6 @@
 use std::collections::{HashMap, HashSet};
 
-use num::{Complex, Signed};
+use num::Complex;
 use sscanf::scanf;
 
 #[aoc_generator(day9)]
@@ -85,7 +85,7 @@ impl LongRope {
                     let d = self.knots[i - 1] - self.knots[i];
                     if d.norm_sqr() >= 4 {
                         self.knots[i] += sign(&d);
-                        if only_track.is_none() || only_track == Some(i) {
+                        if only_track.map_or(true, |o| o == i) {
                             results
                                 .entry(i)
                                 .or_insert(HashSet::new())
