@@ -1,5 +1,9 @@
-use std::{collections::HashMap, num::ParseIntError};
+use std::{
+    collections::{HashMap, HashSet},
+    num::ParseIntError,
+};
 
+use itertools::Itertools;
 use nom::{
     branch::alt,
     bytes::complete::{tag, tag_no_case},
@@ -61,6 +65,54 @@ impl Valves {
         }
         pressure
     }
+
+    fn elephant(&self, start: usize, t_0: usize) -> usize {
+        // Map from bitmask of opened valves to total released pressure.
+        let mut pressures: HashMap<usize, usize> = HashMap::new();
+        let nonzero_ix: HashMap<usize, usize> = self
+            .rates
+            .iter()
+            .enumerate()
+            .filter_map(|(i, (&valve, &rate))| (rate > 0).then_some((valve, i)))
+            .collect();
+        if nonzero_ix.len() > usize::BITS as usize {
+            panic!("too many nonzero valves for bitmask");
+        }
+        let mut stack: Vec<(usize, usize, usize, usize, HashSet<usize>)> =
+            vec![(t_0 - 4, 0, start, 0, HashSet::new())];
+        while let Some((t, released, valve, visited_mask, masks)) = stack.pop() {
+            pressures
+                .entry(visited_mask)
+                .and_modify(|p| *p = (*p).max(released))
+                .or_insert(released);
+            stack.extend(
+                self.distances[&valve]
+                    .iter()
+                    .filter(|(valve, &dist)| {
+                        dist < t - 2
+                            && nonzero_ix
+                                .get(valve)
+                                .map_or(false, |i| visited_mask & 1 << i == 0)
+                    })
+                    .map(|(valve, &dist)| {
+                        let new_mask = visited_mask | 1 << nonzero_ix[valve];
+                        (
+                            t - dist - 1,
+                            released + self.rates[valve] * (t - dist - 1),
+                            *valve,
+                            new_mask,
+                            masks.union(&[new_mask].into()).copied().collect(),
+                        )
+                    }),
+            );
+        }
+        pressures
+            .iter()
+            .cartesian_product(pressures.clone().iter())
+            .filter_map(|((m_a, r_a), (m_b, r_b))| (m_a ^ m_b == m_a + m_b).then_some(r_a + r_b))
+            .max()
+            .unwrap()
+    }
 }
 
 fn valve_name_to_key(s: &&str) -> usize {
@@ -120,7 +172,7 @@ pub fn part_1(valves: &Valves) -> usize {
 
 #[aoc(day16, part2)]
 pub fn part_2(valves: &Valves) -> usize {
-    0
+    valves.elephant(valve_name_to_key(&"AA"), 30)
 }
 
 #[cfg(test)]
@@ -135,5 +187,7 @@ mod tests {
     }
 
     #[test]
-    fn test_part_2() {}
+    fn test_part_2() {
+        assert_eq!(part_2(&get_input(INPUT)), 1707);
+    }
 }
