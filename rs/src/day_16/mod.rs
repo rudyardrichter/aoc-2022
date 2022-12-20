@@ -25,74 +25,41 @@ impl Valves {
         }
         Self { distances, rates }
     }
+
     fn release(&self, start: usize, t_0: usize) -> usize {
-        // Set up DP matrix with dimension: t_0 x nodes x [bitmask],
-        // where bitmask is a vector with length equal to n nodes.
-        // So the third dimension actually is 2^nodes. Howveer, we can limit this only to nodes
-        // which have a nonzero flow rate.
-        // Define function flow which returns rate based on bitmask.
-        // Base case:
-        //     released[t_0][start][*] = 0
-        // Recurrence relations from released[t][node][bitmask]:
-        //     if node is not "open":
-        //         bitmask_new = bitmask with node set to true/"opened"
-        //         released[t - 1][node][bitmask_new]
-        //             = released[t][node][bitmask] + (t - 1) * flow(bitmask_new)
-        //     else:
-        //         for dst in neighbors accessible from node:
-        //             released[t - 1][dst][bitmask] = itself.min(released[t][node][bitmask])
-        // At each time step, we need only check the reachable nodes, e.g. if released[t] contains
-        // nonzero values only for node A then released[t - 1] should only have nonzero
-        // values stored in released[t - 1][A] and released[t - 1][B] where B is any node rechable
-        // from A.
-        // Solution is the maximum entry in released[0].
-        //
-        // TODO: do it the not stupid way
-        let nonzero: Vec<usize> = self
+        let mut pressure = 0;
+        let nonzero_ix: HashMap<usize, usize> = self
             .rates
             .iter()
-            .filter_map(|(&valve, &rate)| (rate > 0).then_some(valve))
+            .enumerate()
+            .filter_map(|(i, (&valve, &rate))| (rate > 0).then_some((valve, i)))
             .collect();
-        let n_nonzero = nonzero.len();
-        let mut released: Vec<Vec<Vec<usize>>> =
-            vec![vec![vec![0; 1 << n_nonzero]; n_nonzero]; t_0 + 1];
-        for t in (0..t_0).rev() {
-            for (i, valve) in nonzero.iter().enumerate() {
-                // We have to restrict each iteration to nodes reachable from the start within the
-                // elapsed time.
-                if let Some(dist) = self.distances[&start].get(&valve) {
-                    if t + dist > t_0 {
-                        continue;
-                    }
-                }
-                let rate = self.rates[&valve];
-                for bitmask in 0..(1 << n_nonzero) {
-                    if bitmask & (1 << i) == 0 && t > 0 {
-                        // Valve is closed
-                        let bitmask_new = bitmask | (1 << i);
-                        released[t][i][bitmask_new] = released[t + 1][i][bitmask] + (t - 1) * rate;
-                    } else {
-                        // Iterate over all nonzero, closed nodes reachable from this valve, and
-                        // skip to time according to their distance from the current valve.
-                        let distances = &self.distances[&valve];
-                        for j in (0..n_nonzero).filter(|j| bitmask & (1 << j) == 0) {
-                            let dst = nonzero[j];
-                            if let Some(&dist) = distances.get(&dst) {
-                                if t + dist <= t_0 {
-                                    released[t][j][bitmask] =
-                                        released[t][j][bitmask].max(released[t + dist][i][bitmask]);
-                                }
-                            }
-                        }
-                    }
-                }
-            }
+        if nonzero_ix.len() > usize::BITS as usize {
+            panic!("too many nonzero valves for bitmask");
         }
-        *released[0]
-            .iter()
-            .map(|r| r.iter().max().unwrap())
-            .max()
-            .unwrap()
+        let mut stack: Vec<(usize, usize, usize, usize)> = vec![(t_0, 0, start, 0)];
+        while let Some((t, released, valve, visited_mask)) = stack.pop() {
+            pressure = pressure.max(released);
+            stack.extend(
+                self.distances[&valve]
+                    .iter()
+                    .filter(|(valve, &dist)| {
+                        dist < t - 2
+                            && nonzero_ix
+                                .get(valve)
+                                .map_or(false, |i| visited_mask & 1 << i == 0)
+                    })
+                    .map(|(valve, &dist)| {
+                        (
+                            t - dist - 1,
+                            released + self.rates[valve] * (t - dist - 1),
+                            *valve,
+                            visited_mask | 1 << nonzero_ix[valve],
+                        )
+                    }),
+            );
+        }
+        pressure
     }
 }
 
@@ -148,7 +115,7 @@ pub fn get_input(input: &str) -> Valves {
 
 #[aoc(day16, part1)]
 pub fn part_1(valves: &Valves) -> usize {
-    valves.release(0, 30)
+    valves.release(valve_name_to_key(&"AA"), 30)
 }
 
 #[aoc(day16, part2)]
