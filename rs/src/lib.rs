@@ -1,3 +1,4 @@
+#![feature(array_zip)]
 #![feature(iter_intersperse)]
 
 #[macro_use]
@@ -23,5 +24,6 @@ mod day_13;
 mod day_14;
 mod day_15;
 mod day_16;
+mod day_17;
 
 aoc_lib! { year = 2022 }
