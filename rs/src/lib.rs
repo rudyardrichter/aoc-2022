@@ -1,5 +1,6 @@
 #![feature(array_zip)]
 #![feature(iter_intersperse)]
+#![feature(stmt_expr_attributes)]
 
 #[macro_use]
 extern crate aoc_runner_derive;
@@ -25,5 +26,6 @@ mod day_14;
 mod day_15;
 mod day_16;
 mod day_17;
+mod day_18;
 
 aoc_lib! { year = 2022 }
