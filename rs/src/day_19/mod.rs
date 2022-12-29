@@ -11,7 +11,7 @@ use nom::{
     sequence::tuple,
     IResult,
 };
-use num::{CheckedSub, Integer, Zero};
+use num::{CheckedSub, Zero};
 
 #[derive(Debug)]
 pub struct Blueprint<T> {
@@ -128,10 +128,6 @@ impl Blueprint<usize> {
             .iter()
             .fold(R4::zero(), |acc, cost| acc.element_max(cost));
         while let Some((t, r, n)) = q.pop() {
-            result = result.max(n[3]);
-            if t == 0 {
-                continue;
-            }
             for i in 0..4 {
                 if max_costs[i] != 0 && r[i] >= max_costs[i] {
                     continue;
@@ -143,45 +139,25 @@ impl Blueprint<usize> {
                         None
                     } else {
                         acc.map(|a| {
-                            let (p, q) = self.costs[i][j].saturating_sub(n[j]).div_rem(&r[j]);
-                            if q > 0 {
-                                a.max(p + 1)
-                            } else {
-                                a.max(p)
-                            }
+                            a.max((self.costs[i][j] + r[j] - 1).saturating_sub(n[j]) / r[j])
                         })
-                        //acc.map(|a| {
-                        //    a.max((self.costs[i][j] + r[j]).saturating_sub(n[j]) / &r[j])
-                        //})
                     }
                 });
                 if let Some(t_cost) = t_cost_opt {
                     if t > t_cost {
                         let n_new = n + r + r * R4(t_cost, t_cost, t_cost, t_cost);
-                        let mut r_new = r.clone();
+                        let mut r_new = r;
                         r_new[i] += 1;
-                        q.push((t - t_cost - 1, r_new, n_new - self.costs[i]));
+                        result = result.max(n_new[3]);
+                        let t_new = t - t_cost - 1;
+                        let could_make = n_new[3] + r_new[3] * t_new + (t_new * t_new + t_new) / 2;
+                        // TODO: add more pruning
+                        if t_new > 0 && could_make > result + 1 {
+                            q.push((t_new, r_new, n_new - self.costs[i]));
+                        }
                     }
                 }
-
-                //if let Some(d) = n.checked_sub(&self.costs[i]) {
-                //} else {
-                //    if let Some(t_cost) = d.max_div(&r) {
-                //        if let Some(t_new) = t.checked_sub(t_cost + 1) {
-                //            let mut r_new = r.clone();
-                //            r_new[i] += 1;
-                //            q.push((t_new, r_new, n + r, [false, false, false, false]));
-                //        }
-                //    }
-                //}
             }
-            //let mut skip: [bool; 4] = (0..4)
-            //    .map(|i| self.costs[i].checked_sub(&n).is_some())
-            //    .collect::<Vec<_>>()
-            //    .try_into()
-            //    .unwrap();
-            //skip[3] = false;
-            //q.push((t - 1, r, n + r, skip));
         }
         result
     }
@@ -227,12 +203,12 @@ pub fn get_input(input: &str) -> Vec<Blueprint<usize>> {
 }
 
 #[aoc(day19, part1)]
-pub fn part_1(blueprints: &Vec<Blueprint<usize>>) -> usize {
+pub fn part_1(blueprints: &[Blueprint<usize>]) -> usize {
     blueprints.iter().map(|b| b.quality(24)).sum()
 }
 
 #[aoc(day19, part2)]
-pub fn part_2(blueprints: &Vec<Blueprint<usize>>) -> usize {
+pub fn part_2(blueprints: &[Blueprint<usize>]) -> usize {
     blueprints
         .iter()
         .take(3)
@@ -252,7 +228,8 @@ mod tests {
     }
 
     #[test]
+    #[ignore] // slow
     fn test_part_2() {
-        //assert_eq!(part_2(&get_input(INPUT)), 62);
+        assert_eq!(part_2(&get_input(INPUT)), 3472);
     }
 }
