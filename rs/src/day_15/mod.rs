@@ -27,7 +27,7 @@ impl TryFrom<&str> for Area {
                     l,
                     "Sensor at x={isize}, y={isize}: closest beacon is at x={isize}, y={isize}"
                 )
-                .map_err(|_| format!("couldn't parse line: {}", l).to_string())?;
+                .map_err(|_| format!("couldn't parse line: {}", l))?;
                 let s = complex!(sx, sy);
                 let b = complex!(bx, by);
                 Ok((s, b, (s - b).l1_norm()))
@@ -92,7 +92,7 @@ fn sole_beacon(area: &Area, limits: ((isize, isize), (isize, isize))) -> Option<
                 && limits.0 .1 <= y
                 && y <= limits.1 .1
                 && !area.contains(complex!(x, y)))
-            .then(|| (x, y))
+            .then_some((x, y))
         })
 }
 

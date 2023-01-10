@@ -10,7 +10,7 @@ use nom::{
     IResult,
 };
 
-#[derive(Clone, Eq, Ord, PartialEq)]
+#[derive(Clone, Eq, PartialEq)]
 pub enum Packet {
     Int(usize),
     List(VecDeque<Packet>),
@@ -65,6 +65,12 @@ impl PartialOrd for Packet {
     }
 }
 
+impl Ord for Packet {
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        self.partial_cmp(other).unwrap()
+    }
+}
+
 fn parse_all_packets(s: &str) -> IResult<&str, Vec<(Packet, Packet)>> {
     separated_list0(tag("\n\n"), parse_packet_pair)(s)
 }
@@ -99,7 +105,7 @@ pub fn get_input(input: &str) -> Vec<(Packet, Packet)> {
 }
 
 #[aoc(day13, part1)]
-pub fn part_1(packets: &Vec<(Packet, Packet)>) -> usize {
+pub fn part_1(packets: &[(Packet, Packet)]) -> usize {
     packets
         .iter()
         .enumerate()
@@ -111,7 +117,7 @@ pub fn part_1(packets: &Vec<(Packet, Packet)>) -> usize {
 }
 
 #[aoc(day13, part2)]
-pub fn part_2(packets: &Vec<(Packet, Packet)>) -> usize {
+pub fn part_2(packets: &[(Packet, Packet)]) -> usize {
     let divider = |n: usize| Packet::List(vec![Packet::List(vec![Packet::Int(n)].into())].into());
     let mut packets: Vec<Packet> = packets
         .iter()

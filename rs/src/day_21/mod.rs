@@ -2,7 +2,7 @@ use std::{
     collections::HashMap,
     fmt::Debug,
     hash::Hash,
-    ops::{Add, Div, Index, Mul, Sub},
+    ops::{Add, Div, Mul, Sub},
     str::FromStr,
 };
 
@@ -200,7 +200,7 @@ pub fn get_input(input: &str) -> HashMap<Vec<u8>, Job<isize, Vec<u8>>> {
 
 #[aoc(day21, part1)]
 pub fn part_1(monkey_table: &HashMap<Vec<u8>, Job<isize, Vec<u8>>>) -> isize {
-    monkey_table["root".as_bytes()].eval(&monkey_table)
+    monkey_table["root".as_bytes()].eval(monkey_table)
 }
 
 #[aoc(day21, part2)]

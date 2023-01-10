@@ -32,14 +32,13 @@ fn scans_to_coords(scans: Vec<Vec<Complex<usize>>>) -> HashSet<Complex<usize>> {
     HashSet::from_iter(
         scans
             .iter()
-            .map(|s| {
+            .flat_map(|s| {
                 s.iter().zip(s.iter().skip(1)).map(|(src, dst)| {
                     (src.re.min(dst.re)..=src.re.max(dst.re))
                         .cartesian_product(src.im.min(dst.im)..=src.im.max(dst.im))
                         .map(|(re, im)| Complex::new(re, im))
                 })
             })
-            .flatten()
             .flatten(),
     )
 }
@@ -55,7 +54,7 @@ fn sand_rests_at(
     'outer: while let Some(mut current) = stack.pop() {
         while (!floor && current.im < bottom) || (floor && current.im < bottom + 2) {
             let mut blocked = true;
-            'inner: for next in vec![
+            'inner: for next in [
                 current + complex!(0, 1),
                 current + complex!(0, 1) - complex!(1, 0),
                 current + complex!(1, 1),

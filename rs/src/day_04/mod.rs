@@ -53,7 +53,7 @@ pub fn get_input(input: &str) -> Vec<ElfPair> {
 }
 
 #[aoc(day4, part1)]
-pub fn part_1(elf_pairs: &Vec<ElfPair>) -> usize {
+pub fn part_1(elf_pairs: &[ElfPair]) -> usize {
     elf_pairs
         .iter()
         .filter(|&pair| pair.one_fully_contains())
@@ -61,7 +61,7 @@ pub fn part_1(elf_pairs: &Vec<ElfPair>) -> usize {
 }
 
 #[aoc(day4, part2)]
-pub fn part_2(elf_pairs: &Vec<ElfPair>) -> usize {
+pub fn part_2(elf_pairs: &[ElfPair]) -> usize {
     elf_pairs.iter().filter(|&pair| pair.overlaps()).count()
 }
 

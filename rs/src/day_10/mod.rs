@@ -2,16 +2,15 @@
 pub fn get_input(input: &str) -> Vec<isize> {
     input
         .lines()
-        .map(|l| {
+        .flat_map(|l| {
             l.split_whitespace()
                 .map(|s| s.parse::<isize>().unwrap_or(0))
         })
-        .flatten()
         .collect()
 }
 
 #[aoc(day10, part1)]
-pub fn part_1(ns: &Vec<isize>) -> isize {
+pub fn part_1(ns: &[isize]) -> isize {
     (1..=220)
         .zip(ns.iter())
         .fold((0, 1), |(sum, x), (i, n)| {
@@ -25,7 +24,7 @@ pub fn part_1(ns: &Vec<isize>) -> isize {
 }
 
 #[aoc(day10, part2)]
-pub fn part_2(ns: &Vec<isize>) -> &'static str {
+pub fn part_2(ns: &[isize]) -> &'static str {
     let letters: String = (0..)
         .zip(ns.iter())
         .fold((Vec::new(), 1), |(mut pixels, x), (i, n)| {

@@ -1,14 +1,3 @@
-fn mix(ns: &Vec<isize>) -> Vec<isize> {
-    let mut ns = ns.clone();
-    for i in 0..ns.len() {
-        let n = ns.remove(i);
-    }
-    ns.iter()
-        .enumerate()
-        .map(|(i, &n)| ns[(i as isize + n).rem_euclid(ns.len() as isize) as usize])
-        .collect()
-}
-
 #[aoc_generator(day20)]
 pub fn get_input(input: &str) -> Vec<isize> {
     input.lines().map(|l| l.parse().unwrap()).collect()

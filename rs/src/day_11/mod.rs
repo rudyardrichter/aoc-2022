@@ -60,9 +60,7 @@ fn parse_operation(s: &str) -> IResult<&str, Operation> {
                 )),
                 alt((
                     value(Operand::Old, tag("old")),
-                    map_res(digit1, |n: &str| {
-                        n.parse::<usize>().map(|parsed| Operand::Num(parsed))
-                    }),
+                    map_res(digit1, |n: &str| n.parse::<usize>().map(Operand::Num)),
                 )),
             )),
             |(operator, operand)| Operation {
@@ -190,20 +188,20 @@ pub fn get_input(input: &str) -> Vec<Rc<RefCell<Monkey>>> {
         .collect()
 }
 
-fn monkey_business(monkeys: &mut Vec<Rc<RefCell<Monkey>>>, r: usize, w: usize) -> usize {
-    let mut inspections = do_rounds(&mut monkeys.clone(), r, w);
+fn monkey_business(monkeys: &mut [Rc<RefCell<Monkey>>], r: usize, w: usize) -> usize {
+    let mut inspections = do_rounds(&mut monkeys.to_owned(), r, w);
     inspections.sort();
     inspections.pop().unwrap() * inspections.pop().unwrap()
 }
 
 #[aoc(day11, part1)]
-pub fn part_1(monkeys: &Vec<Rc<RefCell<Monkey>>>) -> usize {
-    monkey_business(&mut monkeys.clone(), 20, 3)
+pub fn part_1(monkeys: &[Rc<RefCell<Monkey>>]) -> usize {
+    monkey_business(&mut monkeys.to_owned(), 20, 3)
 }
 
 #[aoc(day11, part2)]
-pub fn part_2(monkeys: &Vec<Rc<RefCell<Monkey>>>) -> usize {
-    monkey_business(&mut monkeys.clone(), 10_000, 1)
+pub fn part_2(monkeys: &[Rc<RefCell<Monkey>>]) -> usize {
+    monkey_business(&mut monkeys.to_owned(), 10_000, 1)
 }
 
 #[cfg(test)]

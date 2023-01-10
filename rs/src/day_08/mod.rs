@@ -4,7 +4,7 @@ fn visible_indices<T>(v: &Vec<T>) -> HashSet<usize>
 where
     T: Ord,
 {
-    if v.len() == 0 {
+    if v.is_empty() {
         return HashSet::new();
     }
     let mut highest_fw = &v[0];
@@ -43,7 +43,7 @@ impl Scenery {
 }
 
 fn sceneries_for(vs: &Vec<Vec<usize>>) -> Vec<Vec<Scenery>> {
-    if vs.len() == 0 {
+    if vs.is_empty() {
         return Vec::new();
     }
     let mut results: Vec<Vec<Scenery>> = vs
@@ -89,7 +89,7 @@ fn sceneries_for(vs: &Vec<Vec<usize>>) -> Vec<Vec<Scenery>> {
 }
 
 fn transpose<T>(v: Vec<Vec<T>>) -> Vec<Vec<T>> {
-    if v.len() == 0 {
+    if v.is_empty() {
         return Vec::new();
     }
     let len = v[0].len();
@@ -108,7 +108,7 @@ fn transpose<T>(v: Vec<Vec<T>>) -> Vec<Vec<T>> {
 pub fn get_input(input: &str) -> Vec<Vec<usize>> {
     input
         .trim()
-        .split("\n")
+        .split('\n')
         .map(|s| {
             s.chars()
                 .map(|c| c.to_digit(10).unwrap() as usize)
@@ -118,7 +118,7 @@ pub fn get_input(input: &str) -> Vec<Vec<usize>> {
 }
 
 #[aoc(day8, part1)]
-pub fn part_1(trees: &Vec<Vec<usize>>) -> usize {
+pub fn part_1(trees: &[Vec<usize>]) -> usize {
     // TODO: could reimplement using sceneries_for
     let mut visible: HashSet<(usize, usize)> = HashSet::new();
     visible.extend(
@@ -128,7 +128,7 @@ pub fn part_1(trees: &Vec<Vec<usize>>) -> usize {
             .flat_map(|(i, line)| visible_indices(line).into_iter().map(move |j| (i, j))),
     );
     visible.extend(
-        transpose(trees.clone())
+        transpose(trees.to_owned())
             .iter()
             .enumerate()
             .flat_map(|(i, line)| visible_indices(line).into_iter().map(move |j| (j, i))),

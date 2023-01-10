@@ -39,12 +39,12 @@ pub fn get_input(input: &str) -> Vec<Rucksack> {
 }
 
 #[aoc(day3, part1)]
-pub fn part_1(rucksacks: &Vec<Rucksack>) -> usize {
+pub fn part_1(rucksacks: &[Rucksack]) -> usize {
     rucksacks.iter().map(|r| r.overlap()).sum()
 }
 
 #[aoc(day3, part2)]
-pub fn part_2(rucksacks: &Vec<Rucksack>) -> usize {
+pub fn part_2(rucksacks: &[Rucksack]) -> usize {
     rucksacks
         .chunks(3)
         .map(|w| {

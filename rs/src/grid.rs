@@ -34,6 +34,7 @@ impl<T, Idx: SliceIndex<[T]>> IndexMut<Idx> for Grid<T> {
     }
 }
 
+#[allow(dead_code)]
 impl<T: Clone> Grid<T> {
     pub fn xy_to_i(&self, (x, y): (usize, usize)) -> usize {
         x + y * self.w
@@ -116,8 +117,7 @@ where
         let w = s.lines().next().ok_or("empty input")?.len();
         let items = s
             .lines()
-            .map(|l| l.chars().map(T::try_from))
-            .flatten()
+            .flat_map(|l| l.chars().map(T::try_from))
             .collect::<Result<Vec<T>, _>>()
             .map_err(|e| format!("{:?}", e))?;
         Ok(Grid { items, w })

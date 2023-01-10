@@ -39,7 +39,7 @@ fn parse_tile_grid(s: &str) -> IResult<&str, Grid<Tile>> {
         let w = v.iter().map(|l| l.len()).max().unwrap().max(v.len());
         let items = (0..w)
             .cartesian_product(0..w)
-            .map(|(i, j)| *v.get(i).map(|r| r.get(j)).flatten().unwrap_or(&Tile::Void))
+            .map(|(i, j)| *v.get(i).and_then(|r| r.get(j)).unwrap_or(&Tile::Void))
             .collect();
         Grid { items, w }
     })(s)
@@ -51,9 +51,9 @@ enum LR {
     R,
 }
 
-impl Into<Complex<isize>> for LR {
-    fn into(self) -> Complex<isize> {
-        match self {
+impl From<LR> for C {
+    fn from(lr: LR) -> Self {
+        match lr {
             LR::L => complex!(0, 1),
             LR::R => complex!(0, -1),
         }
@@ -78,7 +78,7 @@ enum Direction {
 
 fn parse_direction(s: &str) -> IResult<&str, Direction> {
     alt((
-        map(parse_lr, |lr| Direction::Turn(lr)),
+        map(parse_lr, Direction::Turn),
         map_res(digit1, |s: &str| {
             Ok::<_, ParseIntError>(Direction::Go(s.parse::<usize>()?))
         }),
@@ -89,19 +89,22 @@ fn parse_directions(s: &str) -> IResult<&str, Vec<Direction>> {
     many1(parse_direction)(s)
 }
 
+type C = Complex<isize>;
+type FlatWrapMap = HashMap<C, HashMap<C, C>>;
+type CubeWrapMap = HashMap<C, HashMap<C, (C, C)>>;
+
 #[derive(Clone, Debug)]
 pub struct State {
     map: Grid<Tile>,
     // (position, direction)
-    sprite: (Complex<isize>, Complex<isize>),
+    sprite: (C, C),
     directions: Vec<Direction>,
 }
 
 impl State {
-    fn c_concave_corner(&self, c: Complex<isize>) -> Option<Complex<isize>> {
-        match self.get(c) {
-            Some(Tile::Void) => return None,
-            _ => {}
+    fn c_concave_corner(&self, c: C) -> Option<C> {
+        if let Some(Tile::Void) = self.get(c) {
+            return None;
         }
         let p = self
             .map
@@ -128,8 +131,7 @@ impl State {
     // TODO: both follow_directions_X functions should accept a wrap map
     fn follow_directions_flat(&mut self) -> &mut Self {
         // {position => (direction => new position)}
-        let mut wrap_map: HashMap<Complex<isize>, HashMap<Complex<isize>, Complex<isize>>> =
-            HashMap::new();
+        let mut wrap_map: FlatWrapMap = HashMap::new();
         for i_row in (0..self.map.items.len()).step_by(self.map.w) {
             let row = &self.map.items[i_row..(i_row + self.map.w)];
             if let Some(j_l) = row.iter().position(|&tile| tile != Tile::Void) {
@@ -143,11 +145,11 @@ impl State {
                     - 1;
                 wrap_map
                     .entry(complex!(j_l as isize, y))
-                    .or_insert(HashMap::new())
+                    .or_default()
                     .insert(complex!(-1, 0), complex!(j_r as isize, y));
                 wrap_map
                     .entry(complex!(j_r as isize, y))
-                    .or_insert(HashMap::new())
+                    .or_default()
                     .insert(complex!(1, 0), complex!(j_l as isize, y));
             }
         }
@@ -165,11 +167,11 @@ impl State {
                 let y_b = j_d as isize;
                 wrap_map
                     .entry(complex!(i_col as isize, y_a))
-                    .or_insert(HashMap::new())
+                    .or_default()
                     .insert(complex!(0, -1), complex!(i_col as isize, y_b));
                 wrap_map
                     .entry(complex!(i_col as isize, y_b))
-                    .or_insert(HashMap::new())
+                    .or_default()
                     .insert(complex!(0, 1), complex!(i_col as isize, y_a));
             }
         }
@@ -217,14 +219,14 @@ impl State {
                     }
                 }
                 Direction::Turn(lr) => {
-                    self.sprite.1 *= -<LR as std::convert::Into<Complex<isize>>>::into(lr);
+                    self.sprite.1 *= -<LR as std::convert::Into<C>>::into(lr);
                 }
             }
         }
         self
     }
 
-    fn get(&self, c: Complex<isize>) -> Option<Tile> {
+    fn get(&self, c: C) -> Option<Tile> {
         if c.re < 0
             || c.im < 0
             || self.map.xy_to_i((c.re as usize, c.im as usize)) >= self.map.items.len()
@@ -238,10 +240,7 @@ impl State {
     // CAN'T BELIEVE THIS WORKED ON THE FIRST TRY
     fn follow_directions_cube(&mut self) -> &mut Self {
         // {position => (direction => (new position, new direction))}
-        let mut wrap_map: HashMap<
-            Complex<isize>,
-            HashMap<Complex<isize>, (Complex<isize>, Complex<isize>)>,
-        > = HashMap::new();
+        let mut wrap_map: CubeWrapMap = HashMap::new();
         for (i, j) in (0..self.map.w).cartesian_product(0..self.map.w) {
             let c = complex!(i as isize, j as isize);
             if let Some(void) = self.c_concave_corner(c) {
@@ -255,11 +254,11 @@ impl State {
                 loop {
                     wrap_map
                         .entry(a)
-                        .or_insert(HashMap::new())
+                        .or_default()
                         .insert(direction_a_norm, (b, -direction_b_norm));
                     wrap_map
                         .entry(b)
-                        .or_insert(HashMap::new())
+                        .or_default()
                         .insert(direction_b_norm, (a, -direction_a_norm));
                     let mut a_turned = false;
                     let mut b_turned = false;
@@ -356,7 +355,7 @@ impl State {
                     }
                 }
                 Direction::Turn(lr) => {
-                    self.sprite.1 *= -<LR as std::convert::Into<Complex<isize>>>::into(lr);
+                    self.sprite.1 *= -<LR as std::convert::Into<C>>::into(lr);
                 }
             }
         }

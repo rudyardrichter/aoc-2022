@@ -47,14 +47,13 @@ impl TryFrom<&str> for Cargo {
         let n = numbers_line
             .split_whitespace()
             .last()
-            .map(|x| x.parse::<usize>().ok())
-            .flatten()
+            .and_then(|x| x.parse::<usize>().ok())
             .ok_or("parse error")?;
         let mut stacks = Vec::new();
         (0..n).for_each(|_| stacks.push(Rc::new(RefCell::new(Vec::new()))));
         for line in stacks_lines.iter().rev() {
             for (i, chunk) in line.as_bytes().chunks(4).enumerate() {
-                if chunk.get(0) == Some(&b'[') {
+                if chunk.first() == Some(&b'[') {
                     (*stacks[i]).borrow_mut().push(chunk[1] as char);
                 }
             }

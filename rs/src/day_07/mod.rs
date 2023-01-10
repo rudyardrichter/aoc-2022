@@ -56,7 +56,7 @@ impl TryFrom<&str> for Command {
             Ok(Command::CD(dir.trim().into()))
         } else {
             Ok(Command::LS(LSOutput::try_from(
-                s.split_once("\n")
+                s.split_once('\n')
                     .ok_or(format!("parse error in command: {}", s))?
                     .1,
             )?))

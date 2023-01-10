@@ -3,13 +3,13 @@ fn first_marker(s: &String, k: usize) -> Option<usize> {
     let mut mask: u32 = bs
         .iter()
         .take(k)
-        .fold(0, |acc: u32, c| acc ^ 1 << (*c as u8 - 'a' as u8));
+        .fold(0, |acc: u32, c| acc ^ 1 << (*c as u8 - b'a'));
     for (i, (add, remove)) in bs.iter().skip(k).zip(bs.iter()).enumerate() {
         if mask.count_ones() as usize == k {
             return Some(i + k);
         }
-        mask ^= 1 << *add as u8 - 'a' as u8;
-        mask ^= 1 << *remove as u8 - 'a' as u8;
+        mask ^= 1 << (*add as u8 - b'a');
+        mask ^= 1 << (*remove as u8 - b'a');
     }
     None
 }

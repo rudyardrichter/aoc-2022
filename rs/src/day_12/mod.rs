@@ -5,7 +5,7 @@ use std::{
 
 use crate::grid::Grid;
 
-#[derive(Debug, Eq, Ord, PartialEq)]
+#[derive(Debug, Eq, PartialEq)]
 struct HeapItem {
     i: usize, // grid index
     p: usize, // priority
@@ -19,6 +19,12 @@ impl PartialOrd for HeapItem {
     }
 }
 
+impl Ord for HeapItem {
+    fn cmp(&self, other: &HeapItem) -> Ordering {
+        self.partial_cmp(other).unwrap()
+    }
+}
+
 fn hike(grid: &Grid<u8>, any_start: bool) -> usize {
     let mut grid = grid.clone();
     let mut origin_opt: Option<usize> = None;
@@ -26,25 +32,25 @@ fn hike(grid: &Grid<u8>, any_start: bool) -> usize {
     let mut q: BinaryHeap<HeapItem> = BinaryHeap::new();
     let mut distance: HashMap<usize, Option<usize>> = HashMap::new();
     for (i, &v) in grid.items.iter().enumerate() {
-        if v == 'E' as u8 {
+        if v == b'E' {
             q.push(HeapItem {
                 i,
                 p: usize::MAX,
-                v: 'z' as u8,
+                v: b'z',
             });
             origin_opt = Some(i);
             distance.insert(i, Some(0));
         } else {
             distance.insert(i, None);
         }
-        if v == 'S' as u8 {
+        if v == b'S' {
             destination_opt = Some(i);
         }
     }
     let origin = origin_opt.unwrap_or_else(|| panic!("no end found"));
     let destination = destination_opt.unwrap_or_else(|| panic!("no start found"));
-    grid[destination] = 'a' as u8;
-    grid[origin] = 'z' as u8;
+    grid[destination] = b'a';
+    grid[origin] = b'z';
     while let Some(item) = q.pop() {
         for (j, v) in grid
             .neighbors(item.i)
@@ -52,7 +58,7 @@ fn hike(grid: &Grid<u8>, any_start: bool) -> usize {
             .filter(|(_, v)| *v + 1 >= item.v)
         {
             let d_new = distance[&item.i].unwrap() + 1;
-            if (any_start && v == 'a' as u8) || (!any_start && j == destination) {
+            if (any_start && v == b'a') || (!any_start && j == destination) {
                 return d_new;
             }
             if distance[&j].map_or(true, |d| d > d_new) {

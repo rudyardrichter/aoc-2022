@@ -131,7 +131,6 @@ fn parse_valves(s: &str) -> IResult<&str, Valves> {
                 graph.add_edge(*valve, dst, 1);
             }
         });
-        ()
     })(s)?;
     Ok((rest, Valves::new(graph, rates)))
 }

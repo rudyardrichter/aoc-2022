@@ -39,7 +39,7 @@ fn sign(c: &Complex<isize>) -> Complex<isize> {
 }
 
 impl Rope {
-    fn tail_positions(&mut self, moves: &Vec<Complex<isize>>) -> HashSet<Complex<isize>> {
+    fn tail_positions(&mut self, moves: &[Complex<isize>]) -> HashSet<Complex<isize>> {
         let mut result = HashSet::from([Complex::new(0, 0)]);
         moves.iter().for_each(|m| {
             for _ in 0..m.l1_norm() {
@@ -68,7 +68,7 @@ impl LongRope {
 
     fn tail_positions(
         &mut self,
-        moves: &Vec<Complex<isize>>,
+        moves: &[Complex<isize>],
         only_track: Option<usize>,
     ) -> HashMap<usize, HashSet<Complex<isize>>> {
         let mut results = HashMap::from_iter(
@@ -86,10 +86,7 @@ impl LongRope {
                     if d.norm_sqr() >= 4 {
                         self.knots[i] += sign(&d);
                         if only_track.map_or(true, |o| o == i) {
-                            results
-                                .entry(i)
-                                .or_insert(HashSet::new())
-                                .insert(self.knots[i]);
+                            results.entry(i).or_default().insert(self.knots[i]);
                         }
                     }
                 }
@@ -100,12 +97,12 @@ impl LongRope {
 }
 
 #[aoc(day9, part1)]
-pub fn part_1(moves: &Vec<Complex<isize>>) -> usize {
+pub fn part_1(moves: &[Complex<isize>]) -> usize {
     Rope::default().tail_positions(moves).len()
 }
 
 #[aoc(day9, part2)]
-pub fn part_2(moves: &Vec<Complex<isize>>) -> usize {
+pub fn part_2(moves: &[Complex<isize>]) -> usize {
     LongRope::with_len(10).tail_positions(moves, Some(9))[&9].len()
 }
 

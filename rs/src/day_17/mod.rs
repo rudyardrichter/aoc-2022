@@ -34,7 +34,7 @@ impl Piece {
         match self {
             Piece::F => [0b1111 << x, 0, 0, 0],
             Piece::X => [1 << (x + 1), 0b111 << x, 1 << (x + 1), 0],
-            Piece::V => [0b111 << x, 1 << x + 2, 1 << x + 2, 0],
+            Piece::V => [0b111 << x, 1 << (x + 2), 1 << (x + 2), 0],
             Piece::I => [1 << x, 1 << x, 1 << x, 1 << x],
             Piece::Q => [0b11 << x, 0b11 << x, 0, 0],
         }
@@ -82,7 +82,7 @@ impl Tetris {
         Self { rows: vec![] }
     }
 
-    fn do_moves(&mut self, moves: &Vec<Move>, n_rocks: usize) -> usize {
+    fn do_moves(&mut self, moves: &[Move], n_rocks: usize) -> usize {
         let ms = &mut moves.iter().cycle();
         for p in PIECES.iter().cycle().take(n_rocks) {
             let l = self.rows.len();
@@ -116,8 +116,8 @@ impl Tetris {
             let to_update = 4.min(y);
             let to_append = 4 - 4.min(y);
             let mask = p.mask(x);
-            for i in 0..to_update {
-                self.rows[l - y + i] |= mask[i];
+            for (i, m) in mask.iter().enumerate().take(to_update) {
+                self.rows[l - y + i] |= m;
             }
             for i in 0..to_append {
                 if mask[i + to_update] != 0 {
@@ -128,7 +128,7 @@ impl Tetris {
         self.rows.len()
     }
 
-    fn do_moves_but_smarter(&mut self, moves: &Vec<Move>, n_rocks: usize) -> usize {
+    fn do_moves_but_smarter(&mut self, moves: &[Move], n_rocks: usize) -> usize {
         let mut n = 0;
         let mut i_piece = 0;
         let mut i_move = 0;
@@ -169,8 +169,8 @@ impl Tetris {
             let to_update = 4.min(y);
             let to_append = 4 - 4.min(y);
             let mask = p.mask(x);
-            for i in 0..to_update {
-                self.rows[l - y + i] |= mask[i];
+            for (i, m) in mask.iter().enumerate().take(to_update) {
+                self.rows[l - y + i] |= m;
             }
             for i in 0..to_append {
                 if mask[i + to_update] != 0 {
@@ -208,12 +208,12 @@ pub fn get_input(input: &str) -> Vec<Move> {
 }
 
 #[aoc(day17, part1)]
-pub fn part_1(moves: &Vec<Move>) -> usize {
+pub fn part_1(moves: &[Move]) -> usize {
     Tetris::new().do_moves(moves, 2022)
 }
 
 #[aoc(day17, part2)]
-pub fn part_2(moves: &Vec<Move>) -> usize {
+pub fn part_2(moves: &[Move]) -> usize {
     Tetris::new().do_moves_but_smarter(moves, 1000000000000)
 }
 

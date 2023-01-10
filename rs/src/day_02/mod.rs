@@ -50,7 +50,7 @@ impl RPS {
                 Self::Paper => Self::Scissors,
                 Self::Scissors => Self::Rock,
             },
-            Outcome::Draw => self.clone(),
+            Outcome::Draw => *self,
             Outcome::Lose => match self {
                 Self::Rock => Self::Scissors,
                 Self::Paper => Self::Rock,
@@ -108,13 +108,13 @@ impl Match {
 
     fn from_str_1(value: &str) -> Self {
         Self {
-            op: value.chars().nth(0).unwrap().try_into().unwrap(),
+            op: value.chars().next().unwrap().try_into().unwrap(),
             me: value.chars().nth(2).unwrap().try_into().unwrap(),
         }
     }
 
     fn from_str_2(value: &str) -> Self {
-        let op = value.chars().nth(0).unwrap().try_into().unwrap();
+        let op = value.chars().next().unwrap().try_into().unwrap();
         Self {
             op,
             me: op.get_outcome(Outcome::try_from(value.chars().nth(2).unwrap()).unwrap()),
@@ -128,12 +128,12 @@ pub fn get_input(input: &str) -> String {
 }
 
 #[aoc(day2, part1)]
-pub fn part_1(input: &String) -> usize {
+pub fn part_1(input: &str) -> usize {
     input.lines().map(|l| Match::from_str_1(l).score()).sum()
 }
 
 #[aoc(day2, part2)]
-pub fn part_2(input: &String) -> usize {
+pub fn part_2(input: &str) -> usize {
     input.lines().map(|l| Match::from_str_2(l).score()).sum()
 }
 
