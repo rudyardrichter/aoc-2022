@@ -5,6 +5,7 @@ use std::{
 };
 
 /// Represent a two-dimensional grid in a flat structure.
+#[derive(Debug)]
 pub struct Grid<T> {
     pub items: Vec<T>,
     pub w: usize,
@@ -34,15 +35,26 @@ impl<T, Idx: SliceIndex<[T]>> IndexMut<Idx> for Grid<T> {
 }
 
 impl<T: Clone> Grid<T> {
-    pub fn neighbors(&self, i: usize) -> impl std::iter::IntoIterator<Item = (usize, T)> {
+    pub fn xy_to_i(&self, (x, y): (usize, usize)) -> usize {
+        x + y * self.w
+    }
+
+    pub fn get(&self, i: usize) -> Option<&T> {
+        self.items.get(i)
+    }
+
+    pub fn get_xy(&self, (x, y): (usize, usize)) -> Option<&T> {
+        self.items.get(self.xy_to_i((x, y)))
+    }
+
+    pub fn neighbors(&self, i: usize) -> Vec<(usize, T)> {
         self.neighbor_ixs(i)
             .into_iter()
             .map(move |j| (j, self.items[j].clone()))
             .collect::<Vec<_>>()
-            .into_iter()
     }
 
-    pub fn neighbor_ixs(&self, i: usize) -> impl std::iter::IntoIterator<Item = usize> {
+    pub fn neighbor_ixs(&self, i: usize) -> Vec<usize> {
         let mut result: Vec<usize> = Vec::new();
         let x = i % self.w;
         if i >= self.w {
@@ -57,7 +69,31 @@ impl<T: Clone> Grid<T> {
         if i < self.items.len() - self.w {
             result.push(i + self.w); // ↓
         }
-        result.into_iter()
+        result
+    }
+
+    pub fn neighbors_diagonal(&self, i: usize) -> Vec<(usize, T)> {
+        self.neighbor_ixs_diagonal(i)
+            .into_iter()
+            .map(move |j| (j, self.items[j].clone()))
+            .collect::<Vec<_>>()
+    }
+
+    pub fn neighbor_ixs_diagonal(&self, i: usize) -> Vec<usize> {
+        let mut result: Vec<usize> = Vec::new();
+        if i > self.w {
+            result.push(i - self.w - 1); // ↖
+        }
+        if i > self.w - 1 {
+            result.push(i - self.w + 1); // ↗
+        }
+        if i < self.items.len() - self.w {
+            result.push(i + self.w - 1); // ↙
+        }
+        if i < self.items.len() - self.w - 1 {
+            result.push(i + self.w + 1); // ↘
+        }
+        result
     }
 }
 
