@@ -4,6 +4,8 @@ use std::{
     slice::SliceIndex,
 };
 
+use num::Integer;
+
 /// Represent a two-dimensional grid in a flat structure.
 #[derive(Debug)]
 pub struct Grid<T> {
@@ -34,10 +36,24 @@ impl<T, Idx: SliceIndex<[T]>> IndexMut<Idx> for Grid<T> {
     }
 }
 
+impl<T: Clone + Default> Grid<T> {
+    pub fn new(w: usize) -> Self {
+        Grid {
+            items: vec![T::default(); w * w],
+            w,
+        }
+    }
+}
+
 #[allow(dead_code)]
 impl<T: Clone> Grid<T> {
     pub fn xy_to_i(&self, (x, y): (usize, usize)) -> usize {
         x + y * self.w
+    }
+
+    pub fn i_to_xy(&self, i: usize) -> (usize, usize) {
+        let (y, x) = i.div_rem(&self.w);
+        (x, y)
     }
 
     pub fn get(&self, i: usize) -> Option<&T> {
@@ -61,14 +77,14 @@ impl<T: Clone> Grid<T> {
         if i >= self.w {
             result.push(i - self.w); // ↑
         }
-        if x > 0 {
-            result.push(i - 1); // ←
-        }
         if x < self.w - 1 {
             result.push(i + 1); // →
         }
         if i < self.items.len() - self.w {
             result.push(i + self.w); // ↓
+        }
+        if x > 0 {
+            result.push(i - 1); // ←
         }
         result
     }
