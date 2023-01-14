@@ -1,4 +1,5 @@
 #![feature(array_zip)]
+#![feature(int_log)]
 #![feature(int_roundings)]
 #![feature(iter_intersperse)]
 #![feature(stmt_expr_attributes)]
@@ -34,5 +35,6 @@ mod day_21;
 mod day_22;
 mod day_23;
 mod day_24;
+mod day_25;
 
 aoc_lib! { year = 2022 }
