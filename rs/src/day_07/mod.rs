@@ -214,7 +214,7 @@ pub fn part_2(tree: &DirTreeOwner) -> usize {
 mod tests {
     use super::*;
 
-    const INPUT: &'static str = include_str!("../../test_data/day_07.txt");
+    const INPUT: &str = include_str!("../../test_data/day_07.txt");
 
     #[test]
     fn test_parsing() {

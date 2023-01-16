@@ -41,7 +41,7 @@ pub fn get_input(input: &str) -> Vec<Snafu> {
 }
 
 #[aoc(day25, part1)]
-pub fn part_1(snafus: &Vec<Snafu>) -> String {
+pub fn part_1(snafus: &[Snafu]) -> String {
     Snafu::from(snafus.iter().map(isize::from).sum::<isize>()).0
 }
 

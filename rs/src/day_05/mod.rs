@@ -86,7 +86,7 @@ pub fn part_2(cargo: &Cargo) -> String {
 mod tests {
     use super::*;
 
-    const INPUT: &'static str = include_str!("../../test_data/day_05.txt");
+    const INPUT: &str = include_str!("../../test_data/day_05.txt");
 
     #[test]
     fn test_part_1() {

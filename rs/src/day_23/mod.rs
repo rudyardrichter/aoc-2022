@@ -2,7 +2,8 @@ use std::collections::HashSet;
 
 use num::Integer;
 
-const CHECKS: [([(isize, isize); 3], (isize, isize)); 4] = [
+type Point = (isize, isize);
+const CHECKS: [([Point; 3], Point); 4] = [
     // first three tuples are where to check in the grid, last is where to move to
     // N
     ([(-1, -1), (0, -1), (1, -1)], (0, -1)),
@@ -53,12 +54,12 @@ impl ElfMap {
         let mut moved = moves.len();
         for (src, dst) in moves.iter() {
             if !self.es.insert(*dst) {
-                self.es.remove(&dst);
+                self.es.remove(dst);
                 self.es
                     .insert((dst.0 + dst.0 - src.0, dst.1 + dst.1 - src.1));
                 moved -= 2;
             } else {
-                self.es.remove(&src);
+                self.es.remove(src);
             }
         }
         moved > 0

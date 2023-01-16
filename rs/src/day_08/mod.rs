@@ -149,7 +149,7 @@ pub fn part_2(trees: &Vec<Vec<usize>>) -> usize {
 mod tests {
     use super::*;
 
-    const INPUT: &'static str = "30373\n25512\n65332\n33549\n35390\n";
+    const INPUT: &str = "30373\n25512\n65332\n33549\n35390\n";
 
     #[test]
     fn test_part_1() {

@@ -36,15 +36,6 @@ impl<T, Idx: SliceIndex<[T]>> IndexMut<Idx> for Grid<T> {
     }
 }
 
-impl<T: Clone + Default> Grid<T> {
-    pub fn new(w: usize) -> Self {
-        Grid {
-            items: vec![T::default(); w * w],
-            w,
-        }
-    }
-}
-
 #[allow(dead_code)]
 impl<T: Clone> Grid<T> {
     pub fn xy_to_i(&self, (x, y): (usize, usize)) -> usize {

@@ -110,8 +110,8 @@ pub fn part_2(moves: &[Complex<isize>]) -> usize {
 mod tests {
     use super::*;
 
-    const INPUT: &'static str = "R 4\nU 4\nL 3\nD 1\nR 4\nD 1\nL 5\nR 2\n";
-    const INPUT_2: &'static str = "R 5\nU 8\nL 8\nD 3\nR 17\nD 10\nL 25\nU 20\n";
+    const INPUT: &str = "R 4\nU 4\nL 3\nD 1\nR 4\nD 1\nL 5\nR 2\n";
+    const INPUT_2: &str = "R 5\nU 8\nL 8\nD 3\nR 17\nD 10\nL 25\nU 20\n";
 
     #[test]
     fn test_part_1() {
