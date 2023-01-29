@@ -3,7 +3,7 @@ import os
 import pathlib
 import re
 
-import requests
+from .utils.input import ensure_input_exists
 
 
 def most_recent_day() -> int:
@@ -12,13 +12,6 @@ def most_recent_day() -> int:
         for fp in os.listdir(pathlib.Path(__file__).parent / "days")
         if re.match("day", fp)
     )
-
-
-def ensure_input_exists(n: int) -> None:
-    if not os.path.exists(
-        pathlib.Path(__file__).parent.parent.parent / "inputs" / f"day_{n:02}"
-    ):
-        requests.get(f"https://adventofcode.com/2022/day/{n}/input").raise_for_status()
 
 
 def run_day(n: int) -> None:
